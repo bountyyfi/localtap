@@ -136,6 +136,90 @@ const TARGETS = [
   { port: 9443,  name: "Portainer (HTTPS)",            auth: "session", rebind: "partial",    impact: "Container management, host access",            category: "automation" },
   { port: 8085,  name: "Windmill",                     auth: "token",   rebind: "likely",     impact: "Script execution, workflow secrets, API keys",  category: "automation" },
   { port: 3030,  name: "Directus / ToolJet",           auth: "session", rebind: "likely",     impact: "Low-code platform, data source credentials",   category: "automation" },
+
+  // ── Blockchain / Web3 dev ──
+  { port: 8545,  name: "Ethereum JSON-RPC (Hardhat)",  auth: false,     rebind: "confirmed",  impact: "Private key access, fund transfer, contract deploy", category: "dev" },
+  { port: 7545,  name: "Ganache",                      auth: false,     rebind: "confirmed",  impact: "Test ETH wallets, private keys, transaction replay", category: "dev" },
+  { port: 8546,  name: "Ethereum WebSocket RPC",       auth: false,     rebind: "confirmed",  impact: "Real-time tx monitoring, mempool sniffing",    category: "dev" },
+  { port: 8899,  name: "Solana Test Validator",         auth: false,     rebind: "likely",     impact: "Airdrop, transaction signing, program deploy",  category: "dev" },
+
+  // ── ELK / Log stack ──
+  { port: 5601,  name: "Kibana",                       auth: false,     rebind: "likely",     impact: "Log data exfil, saved objects, index patterns", category: "data" },
+  { port: 9600,  name: "Logstash API",                 auth: false,     rebind: "likely",     impact: "Pipeline info, node stats, plugin list",        category: "data" },
+
+  // ── Cloud emulators ──
+  { port: 4566,  name: "LocalStack (AWS emulator)",    auth: false,     rebind: "confirmed",  impact: "S3/SQS/Lambda/DynamoDB - full AWS API access",  category: "infra" },
+  { port: 8086,  name: "Azure Storage Emulator",       auth: false,     rebind: "likely",     impact: "Blob/Queue/Table storage access",               category: "infra" },
+  { port: 8085,  name: "GCP Pub/Sub Emulator",         auth: false,     rebind: "likely",     impact: "Message queue access, topic manipulation",      category: "infra" },
+
+  // ── Email testing ──
+  { port: 8025,  name: "Mailpit / MailHog",            auth: false,     rebind: "likely",     impact: "Captured emails exfil, password reset tokens",  category: "dev" },
+  { port: 1025,  name: "MailHog SMTP",                 auth: false,     rebind: "likely",     impact: "SMTP relay, email injection",                   category: "dev" },
+  { port: 1080,  name: "MailCatcher",                  auth: false,     rebind: "likely",     impact: "Email capture, credential harvesting",          category: "dev" },
+
+  // ── Profiling / Debug ──
+  { port: 6060,  name: "Go pprof",                     auth: false,     rebind: "likely",     impact: "Heap dump, goroutine leak, CPU profile exfil",  category: "dev" },
+  { port: 4173,  name: "Vite Preview",                 auth: false,     rebind: "likely",     impact: "Production build preview, asset exfil",         category: "webdev" },
+
+  // ── Remote access / Terminal ──
+  { port: 7681,  name: "ttyd Web Terminal",            auth: false,     rebind: "confirmed",  impact: "Full shell access via browser, instant RCE",    category: "dev" },
+  { port: 6080,  name: "noVNC",                        auth: false,     rebind: "likely",     impact: "Remote desktop access, screen capture",         category: "dev" },
+  { port: 5900,  name: "VNC Server",                   auth: "password", rebind: "partial",   impact: "Remote desktop, keylogging, screen capture",    category: "dev" },
+
+  // ── Mobile dev ──
+  { port: 19006, name: "Expo DevTools",                auth: false,     rebind: "likely",     impact: "React Native source, device control, hot reload", category: "dev" },
+  { port: 19000, name: "Expo Metro Bundler",           auth: false,     rebind: "likely",     impact: "Source code, bundle manipulation",               category: "dev" },
+  { port: 8081,  name: "React Native Metro",           auth: false,     rebind: "likely",     impact: "Source maps, hot module injection",              category: "webdev" },
+
+  // ── Big data ──
+  { port: 50070, name: "HDFS NameNode",                auth: false,     rebind: "likely",     impact: "Distributed filesystem browse, data exfil",     category: "data" },
+  { port: 8088,  name: "YARN ResourceManager",         auth: false,     rebind: "likely",     impact: "Job submission, container exec, cluster info",   category: "data" },
+  { port: 9092,  name: "Kafka Broker",                 auth: false,     rebind: "partial",    impact: "Topic listing, message consume, producer inject", category: "data" },
+  { port: 2181,  name: "ZooKeeper",                    auth: false,     rebind: "partial",    impact: "Cluster config, ACL data, leader election abuse", category: "data" },
+  { port: 11211, name: "Memcached",                    auth: false,     rebind: "likely",     impact: "Cache dump, session data, DDoS amplification",  category: "data" },
+
+  // ── Testing / QA ──
+  { port: 4444,  name: "Selenium Grid Hub",            auth: false,     rebind: "likely",     impact: "Browser session hijack, arbitrary URL navigation", category: "dev" },
+  { port: 9515,  name: "ChromeDriver",                 auth: false,     rebind: "confirmed",  impact: "Browser automation, session theft via WebDriver", category: "dev" },
+  { port: 4723,  name: "Appium Server",                auth: false,     rebind: "likely",     impact: "Mobile device control, app manipulation",        category: "dev" },
+
+  // ── Reverse proxies / API gateways ──
+  { port: 8082,  name: "Traefik Dashboard",            auth: false,     rebind: "likely",     impact: "Route config exfil, middleware manipulation",    category: "infra" },
+  { port: 8444,  name: "Kong Admin API",               auth: false,     rebind: "likely",     impact: "API gateway config, upstream manipulation",      category: "infra" },
+  { port: 15000, name: "Istio Envoy Admin",            auth: false,     rebind: "likely",     impact: "Service mesh config, cluster topology dump",     category: "infra" },
+  { port: 20000, name: "Webmin",                       auth: "default", rebind: "likely",     impact: "System administration, root access",             category: "infra" },
+
+  // ── Auth / Identity ──
+  { port: 3567,  name: "SuperTokens Core",             auth: false,     rebind: "likely",     impact: "Auth bypass, user session manipulation",         category: "infra" },
+  { port: 8080,  name: "Keycloak",                     auth: "default", rebind: "likely",     impact: "Identity provider admin, token minting",         category: "infra" },
+  { port: 9763,  name: "WSO2 Identity Server",         auth: "default", rebind: "likely",     impact: "SAML/OAuth admin, identity federation abuse",    category: "infra" },
+
+  // ── Data science / Analytics ──
+  { port: 8787,  name: "RStudio Server",               auth: "password", rebind: "partial",   impact: "R console RCE, data access, package install",   category: "ai" },
+  { port: 3838,  name: "Shiny Server",                 auth: false,     rebind: "likely",     impact: "R app access, data visualization exfil",         category: "ai" },
+  { port: 8050,  name: "Plotly Dash",                   auth: false,     rebind: "likely",     impact: "Dashboard data exfil, callback manipulation",   category: "ai" },
+  { port: 8765,  name: "text-generation-webui API",    auth: false,     rebind: "likely",     impact: "LLM inference, model switching, chat history",   category: "ai" },
+
+  // ── Microservices ──
+  { port: 3500,  name: "Dapr HTTP API",                auth: false,     rebind: "likely",     impact: "Service invocation, state store, pub/sub access", category: "infra" },
+  { port: 8778,  name: "Jolokia (JMX over HTTP)",      auth: false,     rebind: "confirmed",  impact: "JMX MBean access, heap dump, thread manipulation", category: "infra" },
+  { port: 9100,  name: "Prometheus Node Exporter",     auth: false,     rebind: "likely",     impact: "Host metrics, filesystem info, network stats",   category: "infra" },
+  { port: 8428,  name: "VictoriaMetrics",              auth: false,     rebind: "likely",     impact: "Metrics DB access, data injection/exfil",        category: "infra" },
+
+  // ── File sharing / Storage ──
+  { port: 8080,  name: "FileBrowser",                  auth: "default", rebind: "likely",     impact: "Full filesystem browse, file upload/download",   category: "infra" },
+  { port: 5001,  name: "IPFS API",                     auth: false,     rebind: "likely",     impact: "Pin/unpin content, file add, swarm peers",       category: "infra" },
+  { port: 4001,  name: "IPFS Swarm",                   auth: false,     rebind: "partial",    impact: "P2P network access, content routing",            category: "infra" },
+
+  // ── Game dev ──
+  { port: 9090,  name: "Godot Remote Debug",           auth: false,     rebind: "likely",     impact: "Scene tree access, variable manipulation",       category: "dev" },
+  { port: 3002,  name: "Unreal Pixel Streaming",       auth: false,     rebind: "likely",     impact: "Render stream hijack, input injection",          category: "dev" },
+
+  // ── SQL tools ──
+  { port: 1433,  name: "Microsoft SQL Server",         auth: "password", rebind: "no",        impact: "Database access, xp_cmdshell RCE",              category: "data" },
+  { port: 33060, name: "MySQL X Protocol",             auth: "password", rebind: "no",        impact: "Document store access, async queries",           category: "data" },
+  { port: 6380,  name: "Redis (TLS)",                  auth: false,     rebind: "partial",    impact: "Encrypted cache access",                         category: "data" },
+  { port: 8529,  name: "ArangoDB Web UI",              auth: false,     rebind: "likely",     impact: "AQL queries, graph traversal, user management",  category: "data" },
 ];
 
 // Deduplicate by port (some share 3000)
