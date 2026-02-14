@@ -2,7 +2,7 @@
 
 **The 2026 Localhost Attack Surface Scanner**
 
-Security research by [Bountyy Oy](https://bountyy.com) / Mihalis Haatainen
+Security research by [Bountyy Oy](https://bountyy.fi) / Mihalis Haatainen
 
 ## What is this?
 

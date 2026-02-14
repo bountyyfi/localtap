@@ -784,7 +784,7 @@ pre{background:var(--surface);border:1px solid var(--border);border-radius:8px;p
 
 <div class="footer">
   LocalTap // Security Research by Bountyy Oy // Mihalis Haatainen // 2026<br>
-  <a href="https://bountyy.com">bountyy.com</a>
+  <a href="https://bountyy.fi">bountyy.fi</a>
 </div>
 
 </div>
