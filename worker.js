@@ -447,8 +447,8 @@ h1 span{color:var(--red)}
 </div>
 
 <script>
-const TARGETS = \${targetsJSON};
-const BASE = "\${baseUrl}";
+const TARGETS = ${targetsJSON};
+const BASE = "${baseUrl}";
 let scanning = false;
 let results = {};
 let abortController = null;
