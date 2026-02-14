@@ -220,6 +220,296 @@ const TARGETS = [
   { port: 33060, name: "MySQL X Protocol",             auth: "password", rebind: "no",        impact: "Document store access, async queries",           category: "data" },
   { port: 6380,  name: "Redis (TLS)",                  auth: false,     rebind: "partial",    impact: "Encrypted cache access",                         category: "data" },
   { port: 8529,  name: "ArangoDB Web UI",              auth: false,     rebind: "likely",     impact: "AQL queries, graph traversal, user management",  category: "data" },
+
+  // ── Message queues ──
+  { port: 5672,  name: "RabbitMQ AMQP",               auth: "default", rebind: "partial",    impact: "Queue consume/publish, vhost access, user creds", category: "data" },
+  { port: 4222,  name: "NATS",                         auth: false,     rebind: "likely",     impact: "Pub/sub hijack, request/reply interception",     category: "data" },
+  { port: 8222,  name: "NATS Monitoring",              auth: false,     rebind: "likely",     impact: "Connection info, subscription list, route map",  category: "data" },
+  { port: 4151,  name: "NSQ nsqd HTTP",                auth: false,     rebind: "likely",     impact: "Topic/channel manipulation, message publish",    category: "data" },
+  { port: 4171,  name: "NSQ nsqadmin",                 auth: false,     rebind: "likely",     impact: "Cluster admin, topic delete, channel management", category: "data" },
+  { port: 61616, name: "ActiveMQ OpenWire",            auth: "default", rebind: "partial",    impact: "Message broker access, queue manipulation",      category: "data" },
+  { port: 11300, name: "Beanstalkd",                   auth: false,     rebind: "likely",     impact: "Job queue access, job steal/delete/inject",      category: "data" },
+
+  // ── Monitoring / Observability ──
+  { port: 9093,  name: "Alertmanager",                 auth: false,     rebind: "likely",     impact: "Alert silencing, notification routing, alert exfil", category: "infra" },
+  { port: 9115,  name: "Blackbox Exporter",            auth: false,     rebind: "likely",     impact: "SSRF via probe targets, internal endpoint map",  category: "infra" },
+  { port: 19999, name: "Netdata",                      auth: false,     rebind: "confirmed",  impact: "Real-time system metrics, process list, disk info", category: "infra" },
+  { port: 8686,  name: "Vector (Datadog)",             auth: false,     rebind: "likely",     impact: "Log pipeline config, health/metrics exfil",      category: "infra" },
+
+  // ── Kubernetes internals ──
+  { port: 10255, name: "Kubelet Read-only",            auth: false,     rebind: "likely",     impact: "Pod list, spec dump, running containers",        category: "infra" },
+  { port: 10248, name: "Kubelet Healthz",              auth: false,     rebind: "likely",     impact: "Node health, component status",                  category: "infra" },
+  { port: 2380,  name: "etcd Peer",                    auth: false,     rebind: "likely",     impact: "Cluster membership, leader election disruption",  category: "infra" },
+
+  // ── Proxy / Tunnel ──
+  { port: 3128,  name: "Squid Proxy",                  auth: false,     rebind: "likely",     impact: "Open proxy, SSRF, internal network pivot",       category: "infra" },
+  { port: 9050,  name: "Tor SOCKS",                    auth: false,     rebind: "partial",    impact: "Anonymous traffic relay, proxy abuse",            category: "infra" },
+  { port: 2222,  name: "SSH Alt / Gitea SSH",          auth: "password", rebind: "no",        impact: "Shell access, Git repo access",                  category: "dev" },
+  { port: 9418,  name: "Git Daemon",                   auth: false,     rebind: "likely",     impact: "Anonymous Git clone, source code exfil",         category: "dev" },
+
+  // ── AI/ML extended ──
+  { port: 8265,  name: "Ray Dashboard",                auth: false,     rebind: "likely",     impact: "Distributed compute cluster, job submission, actor list", category: "ai" },
+  { port: 6334,  name: "Qdrant gRPC",                  auth: false,     rebind: "likely",     impact: "Vector DB gRPC, high-speed embedding exfil",     category: "ai" },
+  { port: 8084,  name: "Weaviate",                     auth: false,     rebind: "likely",     impact: "Vector search, schema manipulation, object CRUD", category: "ai" },
+  { port: 5002,  name: "Flask / TTS Server",           auth: false,     rebind: "likely",     impact: "API access, model inference, file serving",      category: "ai" },
+  { port: 7861,  name: "Gradio (alt port)",            auth: false,     rebind: "likely",     impact: "ML app access, file upload, model inference",    category: "ai" },
+
+  // ── Blockchain extended ──
+  { port: 8332,  name: "Bitcoin Core RPC",             auth: "password", rebind: "partial",   impact: "Wallet access, transaction signing, fund transfer", category: "dev" },
+  { port: 18443, name: "Bitcoin Regtest RPC",          auth: "password", rebind: "partial",   impact: "Test wallet control, block generation",           category: "dev" },
+  { port: 5052,  name: "Ethereum Beacon API",          auth: false,     rebind: "likely",     impact: "Validator info, beacon state, attestation data",  category: "dev" },
+  { port: 8551,  name: "Geth Engine API",              auth: "token",   rebind: "partial",    impact: "Execution layer control, payload building",      category: "dev" },
+  { port: 30303, name: "Geth P2P",                     auth: false,     rebind: "partial",    impact: "Peer discovery, network topology mapping",       category: "dev" },
+
+  // ── CMS / Web apps ──
+  { port: 2368,  name: "Ghost CMS",                    auth: "session", rebind: "likely",     impact: "Blog admin, content manipulation, user data",    category: "webdev" },
+  { port: 8069,  name: "Odoo ERP",                     auth: "session", rebind: "likely",     impact: "Business data, invoices, customer records",      category: "webdev" },
+  { port: 3010,  name: "Gitea Web UI",                 auth: "session", rebind: "likely",     impact: "Git repos, CI secrets, user management",         category: "dev" },
+  { port: 8929,  name: "GitLab Dev Kit",               auth: "default", rebind: "likely",     impact: "Git repos, CI/CD pipelines, secrets, tokens",    category: "dev" },
+
+  // ── IoT / Protocol ──
+  { port: 1883,  name: "MQTT (Mosquitto)",             auth: false,     rebind: "confirmed",  impact: "IoT message intercept, topic subscribe, publish", category: "automation" },
+  { port: 8883,  name: "MQTT TLS",                     auth: "cert",    rebind: "partial",    impact: "Encrypted IoT messaging, device control",        category: "automation" },
+  { port: 4840,  name: "OPC UA Server",                auth: false,     rebind: "likely",     impact: "Industrial control read/write, PLC access",      category: "automation" },
+  { port: 502,   name: "Modbus TCP",                   auth: false,     rebind: "likely",     impact: "Industrial device control, register read/write", category: "automation" },
+
+  // ── Media / Streaming ──
+  { port: 8554,  name: "MediaMTX (RTSP)",              auth: false,     rebind: "likely",     impact: "Camera stream interception, stream injection",   category: "infra" },
+  { port: 1935,  name: "RTMP Server",                  auth: false,     rebind: "likely",     impact: "Live stream hijack, stream key exfil",           category: "infra" },
+  { port: 25565, name: "Minecraft Server",             auth: false,     rebind: "partial",    impact: "Server info, player data, RCON if enabled",      category: "dev" },
+
+  // ── Desktop apps ──
+  { port: 6463,  name: "Discord RPC",                  auth: false,     rebind: "likely",     impact: "Rich presence manipulation, user info leak",     category: "dev" },
+  { port: 17500, name: "Dropbox LAN Sync",             auth: false,     rebind: "likely",     impact: "File sync metadata, peer discovery",             category: "dev" },
+  { port: 57621, name: "Spotify Connect",              auth: false,     rebind: "partial",    impact: "Playback control, device discovery",             category: "dev" },
+  { port: 47990, name: "Sunshine (Game Stream)",       auth: "password", rebind: "likely",    impact: "Remote desktop stream, input injection",         category: "dev" },
+  { port: 5800,  name: "VNC HTTP Viewer",              auth: false,     rebind: "likely",     impact: "Web-based remote desktop, no auth by default",   category: "dev" },
+  { port: 6000,  name: "X11 Display Server",           auth: false,     rebind: "partial",    impact: "Screen capture, keyboard sniffing, window inject", category: "dev" },
+
+  // ── Security tools ──
+  { port: 8834,  name: "Nessus Scanner",               auth: "password", rebind: "likely",    impact: "Vuln scan results, scan configs, network topology", category: "infra" },
+  { port: 9390,  name: "OpenVAS / Greenbone",          auth: "password", rebind: "likely",    impact: "Vulnerability reports, scan targets, credentials", category: "infra" },
+
+  // ── Misc dev services ──
+  { port: 7199,  name: "Cassandra JMX",                auth: false,     rebind: "partial",    impact: "Cluster management, compaction, repair trigger", category: "data" },
+  { port: 9998,  name: "Azkaban Web Server",           auth: "default", rebind: "likely",     impact: "Workflow execution, Hadoop job scheduling",       category: "data" },
+  { port: 5601,  name: "OpenSearch Dashboards",        auth: false,     rebind: "likely",     impact: "Log data exfil, index pattern access",           category: "data" },
+  { port: 14268, name: "Jaeger Collector HTTP",        auth: false,     rebind: "likely",     impact: "Trace injection, span data manipulation",        category: "infra" },
+  { port: 4318,  name: "OpenTelemetry HTTP",           auth: false,     rebind: "likely",     impact: "Telemetry injection, trace/metric/log poisoning", category: "infra" },
+  { port: 10000, name: "Webmin Alt / JupyterHub",     auth: "password", rebind: "likely",    impact: "System admin or multi-user notebook server",      category: "infra" },
+  { port: 7070,  name: "Spark REST Submission",        auth: false,     rebind: "likely",     impact: "Job submission, driver creation, app kill",       category: "data" },
+  { port: 18080, name: "Spark History Server",         auth: false,     rebind: "likely",     impact: "Job history, environment vars, executor logs",    category: "data" },
+  { port: 10002, name: "Hive Server2 Web UI",          auth: false,     rebind: "likely",     impact: "Query history, session info, database metadata",  category: "data" },
+  { port: 16010, name: "HBase Master Web UI",          auth: false,     rebind: "likely",     impact: "Table listing, region info, cluster status",      category: "data" },
+  { port: 8042,  name: "YARN NodeManager",             auth: false,     rebind: "likely",     impact: "Container logs, application info, node resources", category: "data" },
+  { port: 19888, name: "MapReduce History",            auth: false,     rebind: "likely",     impact: "Job counters, task attempts, config dump",        category: "data" },
+
+  // ═══════════════════════════════════════════════════════════════
+  // ██  THE ONES NOBODY THINKS ABOUT  ████████████████████████████
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── IDE backends (THE big discovery) ──
+  // JetBrains runs a built-in HTTP server on EVERY IDE install.
+  // IntelliJ, WebStorm, PyCharm, GoLand, Rider, CLion, PhpStorm...
+  // It serves ANY file in your open projects via HTTP. No auth.
+  // Millions of developers have this running right now.
+  { port: 63342, name: "JetBrains Built-in Server",    auth: false,     rebind: "confirmed",  impact: "ANY open project file served via HTTP, full source code exfil", category: "dev" },
+  { port: 63343, name: "JetBrains Server (fallback)",  auth: false,     rebind: "confirmed",  impact: "Alt port, same project file access via REST API", category: "dev" },
+
+  // ── Desktop app hidden servers nobody knows about ──
+  // Obsidian with Local REST API plugin: your entire vault via HTTP
+  // Personal notes, journals, passwords stored in markdown, TODO lists
+  { port: 27123, name: "Obsidian Local REST API",      auth: "api_key", rebind: "likely",     impact: "Full vault read/write: notes, journals, passwords, private thoughts", category: "dev" },
+  // Figma installs a persistent local daemon on every designer's machine
+  { port: 18412, name: "Figma Font Helper",            auth: false,     rebind: "likely",     impact: "Local font enumeration, system font fingerprinting", category: "dev" },
+  // Barrier/Synergy: KVM switch software. Inject keystrokes remotely.
+  { port: 24800, name: "Barrier / Synergy KVM",        auth: false,     rebind: "confirmed",  impact: "Keyboard injection, mouse control, clipboard theft = keylogger", category: "dev" },
+  // KDE Connect: phone-to-PC bridge. Access SMS, clipboard, files.
+  { port: 1716,  name: "KDE Connect",                  auth: "cert",    rebind: "partial",    impact: "SMS read, clipboard sync, file transfer, phone locate/ring", category: "automation" },
+  // Music Player Daemon: every Linux audio nerd has this
+  { port: 6600,  name: "MPD (Music Player Daemon)",    auth: false,     rebind: "likely",     impact: "Playlist control, media library listing, filesystem path leak", category: "dev" },
+
+  // ── Apple ecosystem (macOS-specific) ──
+  { port: 7000,  name: "AirPlay Receiver",             auth: false,     rebind: "partial",    impact: "Screen mirroring injection, media playback hijack", category: "automation" },
+  { port: 548,   name: "AFP (Apple Filing Protocol)",  auth: "password", rebind: "no",        impact: "macOS file shares, Time Machine backup access",  category: "infra" },
+  { port: 3283,  name: "Apple Remote Desktop",         auth: "password", rebind: "partial",   impact: "Screen observation, remote control, file copy, shell exec", category: "dev" },
+
+  // ── Smart home (the scary ones) ──
+  // Sonos speakers: no auth, confirmed rebindable, on every audiophile's network
+  { port: 1400,  name: "Sonos HTTP API",               auth: false,     rebind: "confirmed",  impact: "Speaker control, household topology, play arbitrary audio", category: "automation" },
+  // Chromecast: every household with a Google TV has this
+  { port: 8008,  name: "Google Chromecast",            auth: false,     rebind: "partial",    impact: "Cast control, device info, app launch, reboot device", category: "automation" },
+  // ESPHome: IoT firmware builder. Flash new firmware = own the device
+  { port: 6052,  name: "ESPHome Dashboard",            auth: false,     rebind: "likely",     impact: "OTA firmware flash, WiFi credentials, device takeover", category: "automation" },
+  // Homebridge: HomeKit bridge running on Raspberry Pis everywhere
+  { port: 8581,  name: "Homebridge",                   auth: "password", rebind: "likely",    impact: "HomeKit device control, plugin config, smart home admin", category: "automation" },
+
+  // ── Package registries (supply chain) ──
+  // Private npm registry: contains all your company's private packages
+  { port: 4873,  name: "Verdaccio (npm registry)",     auth: false,     rebind: "likely",     impact: "Private npm packages exfil, publish malicious updates", category: "dev" },
+
+  // ── File sharing protocols ──
+  { port: 445,   name: "SMB (Samba)",                  auth: "password", rebind: "no",        impact: "File share enum, printer shares, lateral movement", category: "infra" },
+  { port: 2049,  name: "NFS",                          auth: false,     rebind: "partial",    impact: "Network filesystem mount, full file access if misconfigured", category: "infra" },
+  { port: 22000, name: "Syncthing File Transfer",      auth: false,     rebind: "partial",    impact: "File sync data channel, shared folder content access", category: "infra" },
+
+  // ── Torrent clients (embarrassing data) ──
+  // Transmission is on every Linux desktop. No auth by default.
+  { port: 9091,  name: "Transmission Web UI",          auth: false,     rebind: "confirmed",  impact: "Torrent list exfil, download paths, add malicious torrents", category: "dev" },
+  { port: 8112,  name: "Deluge Web UI",                auth: "default", rebind: "likely",     impact: "Torrent management, download dir, ratio data",   category: "dev" },
+  { port: 51413, name: "Transmission BitTorrent",      auth: false,     rebind: "partial",    impact: "BitTorrent protocol, peer info, transfer data",  category: "dev" },
+
+  // ── Blockchain / Web3 extended (wallet drainers) ──
+  // Polkadot/Substrate nodes: full chain control
+  { port: 9944,  name: "Polkadot/Substrate WS RPC",   auth: false,     rebind: "likely",     impact: "Chain state query, account balance, tx submission", category: "dev" },
+  { port: 9933,  name: "Substrate HTTP RPC",           auth: false,     rebind: "likely",     impact: "Blockchain node control, key management, author rotation", category: "dev" },
+  // Cosmos ecosystem: Tendermint nodes
+  { port: 26657, name: "Tendermint RPC",               auth: false,     rebind: "likely",     impact: "Cosmos chain state, tx broadcast, validator info", category: "dev" },
+  { port: 1317,  name: "Cosmos REST API",              auth: false,     rebind: "likely",     impact: "Chain queries, account data, governance proposals", category: "dev" },
+  // Truffle Dashboard: requests transaction signatures from YOUR wallet
+  { port: 9545,  name: "Truffle Dashboard",            auth: false,     rebind: "likely",     impact: "Transaction signing requests, contract deployment approval", category: "dev" },
+
+  // ── Workflow / Orchestration ──
+  { port: 8233,  name: "Temporal Web UI",              auth: false,     rebind: "likely",     impact: "Workflow execution data, namespace admin, signal inject", category: "infra" },
+  { port: 2746,  name: "Argo Workflows UI",            auth: false,     rebind: "likely",     impact: "K8s workflow execution, artifact download, log access", category: "infra" },
+
+  // ── Hypervisor / VM management ──
+  // Proxmox: hypervisor running VMs. Admin = god mode on the host.
+  { port: 8006,  name: "Proxmox VE",                   auth: "password", rebind: "likely",    impact: "VM/container management, host shell, storage, backups", category: "infra" },
+
+  // ── DNS servers (control DNS = control everything) ──
+  { port: 53,    name: "DNS Resolver (TCP)",           auth: false,     rebind: "no",         impact: "DNS cache queries, zone transfer, internal hostname enum", category: "infra" },
+  { port: 5380,  name: "Technitium DNS Admin",        auth: "default", rebind: "likely",     impact: "DNS zone manipulation, query logs, cache poisoning", category: "infra" },
+  { port: 9153,  name: "CoreDNS Metrics",              auth: false,     rebind: "likely",     impact: "DNS query stats, zone info, internal resolution patterns", category: "infra" },
+
+  // ── Directory services ──
+  { port: 389,   name: "LDAP",                        auth: "bind",    rebind: "no",         impact: "User enumeration, group membership, org structure", category: "infra" },
+  { port: 636,   name: "LDAPS",                       auth: "bind",    rebind: "no",         impact: "Encrypted directory queries, same LDAP impact",  category: "infra" },
+
+  // ── Voice / Comms ──
+  { port: 64738, name: "Mumble Voice Server",          auth: false,     rebind: "partial",    impact: "Voice chat eavesdrop, user list, channel mapping", category: "dev" },
+  { port: 3478,  name: "STUN/TURN (WebRTC)",          auth: false,     rebind: "partial",    impact: "NAT traversal abuse, internal IP disclosure, relay hijack", category: "infra" },
+
+  // ── Data visualization ──
+  { port: 5006,  name: "Bokeh / Panel Server",        auth: false,     rebind: "likely",     impact: "Interactive data viz, underlying dataset exfiltration", category: "ai" },
+
+  // ── AI inference servers ──
+  { port: 9999,  name: "vLLM API Server",              auth: false,     rebind: "likely",     impact: "LLM inference, model list, completion abuse, prompt injection", category: "ai" },
+
+  // ── Container runtime internals ──
+  { port: 10010, name: "containerd CRI gRPC",          auth: false,     rebind: "likely",     impact: "Container runtime control, image pull, exec in containers", category: "infra" },
+  { port: 9181,  name: "ZooKeeper AdminServer",        auth: false,     rebind: "likely",     impact: "Four-letter commands, stat/dump/conf, snapshot trigger", category: "data" },
+
+  // ═══════════════════════════════════════════════════════════════
+  // ██  LEVEL 2: THINGS THAT EXIST ON EVERY MACHINE  █████████████
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── Streamer / Content creator (EVERY streamer has OBS) ──
+  // OBS 28+ added WebSocket server. Default port 4455.
+  // Older versions: no password by default. Control the stream from any webpage.
+  { port: 4455,  name: "OBS WebSocket Server",         auth: "password", rebind: "likely",    impact: "Stream control, scene switch, screenshot, go live/offline, source toggle", category: "dev" },
+
+  // ── Music apps with local APIs ──
+  // Spotify desktop runs HTTPS on 4370-4389. Any website reads what you listen to.
+  { port: 4381,  name: "Spotify Web Helper",           auth: false,     rebind: "likely",     impact: "Playback control, current track, Spotify username, queue manipulation", category: "dev" },
+  // iTunes/Music sharing protocol. Every Mac with sharing enabled.
+  { port: 3689,  name: "DAAP (iTunes/Music.app)",      auth: false,     rebind: "partial",    impact: "Music library metadata, playlist enum, stream any track", category: "dev" },
+
+  // ── Browser remote debugging (FULL browser takeover) ──
+  // Firefox Marionette: full browser automation. Navigate, click, read DOM.
+  { port: 2828,  name: "Firefox Marionette",           auth: false,     rebind: "confirmed",  impact: "Full browser automation: navigate, read DOM, steal cookies/sessions", category: "dev" },
+
+  // ── Hardware peripheral daemons ──
+  // Logitech Options runs a daemon that accepts commands from localhost
+  { port: 47984, name: "Logitech Options Daemon",      auth: false,     rebind: "likely",     impact: "Device config read, macro execution, button remap, firmware info", category: "dev" },
+  { port: 47988, name: "Logi Options+ (newer)",        auth: false,     rebind: "likely",     impact: "Newer daemon, same attack surface: device control, input injection", category: "dev" },
+  // Scanners: SANE daemon exposes scanner hardware over TCP
+  { port: 6566,  name: "SANE Scanner Daemon",          auth: false,     rebind: "likely",     impact: "Remote scan trigger, document exfil from physical scanner", category: "dev" },
+
+  // ── Backup software (access to ALL your files) ──
+  // Duplicati web UI: encryption keys, backup configs, restore ANY file
+  { port: 8300,  name: "Duplicati Web UI",             auth: false,     rebind: "likely",     impact: "Backup config, encryption keys exposed, restore ANY backed-up file", category: "infra" },
+  { port: 4242,  name: "CrashPlan",                    auth: false,     rebind: "likely",     impact: "Backup service, file restore from backup, full backup history", category: "infra" },
+
+  // ── VPN management interfaces (control the tunnel) ──
+  // OpenVPN management interface: kill connections, view all clients, inject routes
+  { port: 7505,  name: "OpenVPN Management",           auth: false,     rebind: "likely",     impact: "VPN tunnel kill, client list, route injection, credential harvest", category: "infra" },
+  // ZeroTier: software-defined networking. Join attacker's network.
+  { port: 9993,  name: "ZeroTier Controller",          auth: "token",   rebind: "likely",     impact: "Network overlay join/leave, peer discovery, route manipulation", category: "infra" },
+
+  // ── Remote desktop tools ──
+  // RustDesk: open-source remote desktop, growing fast
+  { port: 21116, name: "RustDesk Relay",               auth: false,     rebind: "partial",    impact: "Remote desktop relay, screen observation, file transfer", category: "dev" },
+
+  // ── Video conferencing (the famous CVE) ──
+  // Zoom's infamous local web server. CVE-2019-13450. Camera hijack.
+  { port: 19421, name: "Zoom Local Web Server",        auth: false,     rebind: "confirmed",  impact: "Meeting join without consent, camera activation, user info leak", category: "dev" },
+
+  // ── Ebook / Personal knowledge ──
+  // Calibre content server: your entire ebook library
+  { port: 8083,  name: "Calibre Content Server",       auth: false,     rebind: "likely",     impact: "Ebook library browse, download books, reading metadata", category: "dev" },
+
+  // ── Team chat / Messaging ──
+  { port: 5222,  name: "XMPP/Jabber",                 auth: "password", rebind: "no",        impact: "Chat server, contact roster, message history, presence info", category: "infra" },
+  { port: 8065,  name: "Mattermost",                  auth: "password", rebind: "likely",     impact: "Team chat, channel history, file uploads, webhook secrets", category: "dev" },
+  { port: 8448,  name: "Matrix Federation API",        auth: false,     rebind: "likely",     impact: "Matrix homeserver, room state, event history, user directory", category: "infra" },
+
+  // ── Router / Network equipment ──
+  { port: 8291,  name: "MikroTik Winbox",             auth: "password", rebind: "partial",    impact: "Full router control, firewall rules, DNS hijack, packet sniff", category: "infra" },
+
+  // ── Apple iOS device (connected via USB) ──
+  // When you plug in your iPhone, lockdownd listens on 62078
+  { port: 62078, name: "Apple lockdownd (USB)",        auth: "pairing", rebind: "no",         impact: "iOS device info, app list, backup trigger, syslog read", category: "dev" },
+
+  // ── Compilation / Build tools ──
+  // distcc: distributed compilation. Send code = execute it.
+  { port: 3632,  name: "distcc (Distributed Compile)", auth: false,     rebind: "confirmed",  impact: "Submit compilation jobs = arbitrary code execution on build farm", category: "dev" },
+
+  // ── Crypto / Lightning Network ──
+  // LND REST/gRPC: Lightning Network node. Send payments, create invoices.
+  { port: 10009, name: "LND gRPC (Lightning)",        auth: "macaroon", rebind: "likely",    impact: "Lightning wallet: send payments, create invoices, channel management", category: "dev" },
+  { port: 9835,  name: "Electrs (Bitcoin Electrum)",   auth: false,     rebind: "likely",     impact: "Bitcoin tx history, address balances, UTXO set, mempool data", category: "dev" },
+
+  // ── Gaming servers (millions of these running) ──
+  // Minecraft RCON: remote console. Full server command execution.
+  { port: 25575, name: "Minecraft RCON",              auth: "password", rebind: "partial",    impact: "Server console: op players, run commands, world edit, server stop", category: "dev" },
+  { port: 27015, name: "Source Engine RCON",           auth: "password", rebind: "partial",    impact: "Valve game server console (CS2, TF2), exec cfg, ban players", category: "dev" },
+  // Steam LAN: transfers game files between PCs on same network
+  { port: 27036, name: "Steam Local Transfer",         auth: false,     rebind: "partial",    impact: "Steam library metadata, game transfer protocol, LAN discovery", category: "dev" },
+
+  // ── Industrial / SCADA / Building automation (IRL impact) ──
+  // IPMI: server hardware management. Remote KVM, power control, BIOS.
+  { port: 623,   name: "IPMI/BMC",                    auth: "default", rebind: "no",         impact: "Server hardware: remote console, power cycle, BIOS, virtual media", category: "infra" },
+  // Siemens S7: PLC protocol. Controls physical machinery.
+  { port: 102,   name: "Siemens S7 PLC (ISO-TSAP)",   auth: false,     rebind: "no",         impact: "Industrial PLC read/write: motor control, valve state, safety systems", category: "automation" },
+  // BACnet: building automation. HVAC, fire alarms, access control.
+  { port: 47808, name: "BACnet (Building Automation)", auth: false,     rebind: "partial",    impact: "HVAC override, fire alarm suppress, door unlock, lighting control", category: "automation" },
+  // Niagara Fox: Tridium building management. Runs millions of buildings.
+  { port: 1911,  name: "Niagara Fox (Tridium)",       auth: "default", rebind: "partial",    impact: "Building management: sensor override, actuator control, history data", category: "automation" },
+  // EtherNet/IP CIP: Allen-Bradley, Rockwell PLCs
+  { port: 44818, name: "EtherNet/IP (CIP)",           auth: false,     rebind: "partial",    impact: "PLC/drive control, safety system read, I/O manipulation", category: "automation" },
+
+  // ── Databases (missed ones) ──
+  { port: 1521,  name: "Oracle Database (TNS)",        auth: "password", rebind: "no",        impact: "Oracle DB access, TNS listener info, SID enumeration", category: "data" },
+  { port: 2480,  name: "OrientDB Studio",             auth: "default", rebind: "likely",     impact: "Graph DB admin, SQL/Gremlin exec, schema manipulation", category: "data" },
+  { port: 9009,  name: "QuestDB Line Protocol",        auth: false,     rebind: "likely",     impact: "Time-series ingestion, write arbitrary data, metrics exfil", category: "data" },
+
+  // ── Network monitoring / DNS ──
+  // Pi-hole: runs on millions of home networks
+  { port: 4711,  name: "Pi-hole FTL API",              auth: false,     rebind: "likely",     impact: "DNS query logs: every domain visited, blocked list, client IPs", category: "infra" },
+
+  // ── X Window System ──
+  // X11 on non-default display. Screen capture, keyboard injection.
+  { port: 6002,  name: "X11 Display :2",               auth: false,     rebind: "no",         impact: "Screen capture, keystroke injection, window manipulation, clipboard", category: "dev" },
+
+  // ── Electron app debugging ──
+  // Many Electron apps can be launched with --remote-debugging-port
+  // Slack, Discord, VS Code, Teams, Signal, 1Password...
+  { port: 13337, name: "Electron Debug (common)",      auth: false,     rebind: "likely",     impact: "Electron app takeover: eval JS, read IPC, access app data", category: "dev" },
+
+  // ── Windows Remote Management ──
+  { port: 5985,  name: "WinRM HTTP",                  auth: "password", rebind: "no",        impact: "Windows remote shell, PowerShell exec, WMI queries", category: "infra" },
+  { port: 5986,  name: "WinRM HTTPS",                 auth: "password", rebind: "no",        impact: "Encrypted Windows remote management, same WinRM capabilities", category: "infra" },
 ];
 
 // Deduplicate by port (some share 3000)
@@ -552,16 +842,12 @@ async function singleProbe(port, timeout) {
 }
 
 async function calibrate() {
-  // Probe random high ports that are almost certainly closed
+  // Probe random high ports that are almost certainly closed (parallel)
   const closedPorts = [38291, 41753, 49582, 52847, 57391];
-  const times = [];
-  for (const port of closedPorts) {
-    const r = await singleProbe(port, 2000);
-    if (!r.aborted) times.push(r.elapsed);
-  }
+  const probes = await Promise.all(closedPorts.map(p => singleProbe(p, 1500)));
+  const times = probes.filter(r => !r.aborted).map(r => r.elapsed);
   if (times.length === 0) return 50;
   times.sort((a, b) => a - b);
-  // Use median for robustness
   return times[Math.floor(times.length / 2)];
 }
 
@@ -601,15 +887,16 @@ async function startScan() {
   if (!scanning) return;
   document.getElementById('scanStatus').textContent = 'Scanning... (baseline: ' + baseline.toFixed(0) + 'ms, threshold: ' + threshold.toFixed(0) + 'ms)';
 
-  // Step 2: Scan in batches
-  const batchSize = 4;
+  // Step 2: Scan in batches (12 parallel, 1.5s timeout = ~30s total)
+  const batchSize = 12;
+  const probeTimeout = 1500;
   for (let i = 0; i < TARGETS.length; i += batchSize) {
     if (!scanning) break;
 
     const batch = TARGETS.slice(i, i + batchSize);
     batch.forEach(t => updateCard(t.port, 'scanning'));
 
-    const probes = batch.map(t => probePort(t.port));
+    const probes = batch.map(t => probePort(t.port, probeTimeout));
     const batchResults = await Promise.all(probes);
 
     for (const r of batchResults) {
@@ -617,8 +904,10 @@ async function startScan() {
       updateCard(r.port, r.open ? 'open' : 'closed');
     }
 
-    const pct = Math.min(100, ((i + batchSize) / TARGETS.length) * 100);
+    const scanned = Math.min(i + batchSize, TARGETS.length);
+    const pct = (scanned / TARGETS.length) * 100;
     document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('scanStatus').textContent = 'Scanning ' + scanned + ' / ' + TARGETS.length + ' ports (baseline: ' + baseline.toFixed(0) + 'ms)';
   }
 
   scanning = false;
