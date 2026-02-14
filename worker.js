@@ -399,6 +399,117 @@ const TARGETS = [
   // ── Container runtime internals ──
   { port: 10010, name: "containerd CRI gRPC",          auth: false,     rebind: "likely",     impact: "Container runtime control, image pull, exec in containers", category: "infra" },
   { port: 9181,  name: "ZooKeeper AdminServer",        auth: false,     rebind: "likely",     impact: "Four-letter commands, stat/dump/conf, snapshot trigger", category: "data" },
+
+  // ═══════════════════════════════════════════════════════════════
+  // ██  LEVEL 2: THINGS THAT EXIST ON EVERY MACHINE  █████████████
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── Streamer / Content creator (EVERY streamer has OBS) ──
+  // OBS 28+ added WebSocket server. Default port 4455.
+  // Older versions: no password by default. Control the stream from any webpage.
+  { port: 4455,  name: "OBS WebSocket Server",         auth: "password", rebind: "likely",    impact: "Stream control, scene switch, screenshot, go live/offline, source toggle", category: "dev" },
+
+  // ── Music apps with local APIs ──
+  // Spotify desktop runs HTTPS on 4370-4389. Any website reads what you listen to.
+  { port: 4381,  name: "Spotify Web Helper",           auth: false,     rebind: "likely",     impact: "Playback control, current track, Spotify username, queue manipulation", category: "dev" },
+  // iTunes/Music sharing protocol. Every Mac with sharing enabled.
+  { port: 3689,  name: "DAAP (iTunes/Music.app)",      auth: false,     rebind: "partial",    impact: "Music library metadata, playlist enum, stream any track", category: "dev" },
+
+  // ── Browser remote debugging (FULL browser takeover) ──
+  // Firefox Marionette: full browser automation. Navigate, click, read DOM.
+  { port: 2828,  name: "Firefox Marionette",           auth: false,     rebind: "confirmed",  impact: "Full browser automation: navigate, read DOM, steal cookies/sessions", category: "dev" },
+
+  // ── Hardware peripheral daemons ──
+  // Logitech Options runs a daemon that accepts commands from localhost
+  { port: 47984, name: "Logitech Options Daemon",      auth: false,     rebind: "likely",     impact: "Device config read, macro execution, button remap, firmware info", category: "dev" },
+  { port: 47988, name: "Logi Options+ (newer)",        auth: false,     rebind: "likely",     impact: "Newer daemon, same attack surface: device control, input injection", category: "dev" },
+  // Scanners: SANE daemon exposes scanner hardware over TCP
+  { port: 6566,  name: "SANE Scanner Daemon",          auth: false,     rebind: "likely",     impact: "Remote scan trigger, document exfil from physical scanner", category: "dev" },
+
+  // ── Backup software (access to ALL your files) ──
+  // Duplicati web UI: encryption keys, backup configs, restore ANY file
+  { port: 8300,  name: "Duplicati Web UI",             auth: false,     rebind: "likely",     impact: "Backup config, encryption keys exposed, restore ANY backed-up file", category: "infra" },
+  { port: 4242,  name: "CrashPlan",                    auth: false,     rebind: "likely",     impact: "Backup service, file restore from backup, full backup history", category: "infra" },
+
+  // ── VPN management interfaces (control the tunnel) ──
+  // OpenVPN management interface: kill connections, view all clients, inject routes
+  { port: 7505,  name: "OpenVPN Management",           auth: false,     rebind: "likely",     impact: "VPN tunnel kill, client list, route injection, credential harvest", category: "infra" },
+  // ZeroTier: software-defined networking. Join attacker's network.
+  { port: 9993,  name: "ZeroTier Controller",          auth: "token",   rebind: "likely",     impact: "Network overlay join/leave, peer discovery, route manipulation", category: "infra" },
+
+  // ── Remote desktop tools ──
+  // RustDesk: open-source remote desktop, growing fast
+  { port: 21116, name: "RustDesk Relay",               auth: false,     rebind: "partial",    impact: "Remote desktop relay, screen observation, file transfer", category: "dev" },
+
+  // ── Video conferencing (the famous CVE) ──
+  // Zoom's infamous local web server. CVE-2019-13450. Camera hijack.
+  { port: 19421, name: "Zoom Local Web Server",        auth: false,     rebind: "confirmed",  impact: "Meeting join without consent, camera activation, user info leak", category: "dev" },
+
+  // ── Ebook / Personal knowledge ──
+  // Calibre content server: your entire ebook library
+  { port: 8083,  name: "Calibre Content Server",       auth: false,     rebind: "likely",     impact: "Ebook library browse, download books, reading metadata", category: "dev" },
+
+  // ── Team chat / Messaging ──
+  { port: 5222,  name: "XMPP/Jabber",                 auth: "password", rebind: "no",        impact: "Chat server, contact roster, message history, presence info", category: "infra" },
+  { port: 8065,  name: "Mattermost",                  auth: "password", rebind: "likely",     impact: "Team chat, channel history, file uploads, webhook secrets", category: "dev" },
+  { port: 8448,  name: "Matrix Federation API",        auth: false,     rebind: "likely",     impact: "Matrix homeserver, room state, event history, user directory", category: "infra" },
+
+  // ── Router / Network equipment ──
+  { port: 8291,  name: "MikroTik Winbox",             auth: "password", rebind: "partial",    impact: "Full router control, firewall rules, DNS hijack, packet sniff", category: "infra" },
+
+  // ── Apple iOS device (connected via USB) ──
+  // When you plug in your iPhone, lockdownd listens on 62078
+  { port: 62078, name: "Apple lockdownd (USB)",        auth: "pairing", rebind: "no",         impact: "iOS device info, app list, backup trigger, syslog read", category: "dev" },
+
+  // ── Compilation / Build tools ──
+  // distcc: distributed compilation. Send code = execute it.
+  { port: 3632,  name: "distcc (Distributed Compile)", auth: false,     rebind: "confirmed",  impact: "Submit compilation jobs = arbitrary code execution on build farm", category: "dev" },
+
+  // ── Crypto / Lightning Network ──
+  // LND REST/gRPC: Lightning Network node. Send payments, create invoices.
+  { port: 10009, name: "LND gRPC (Lightning)",        auth: "macaroon", rebind: "likely",    impact: "Lightning wallet: send payments, create invoices, channel management", category: "dev" },
+  { port: 9835,  name: "Electrs (Bitcoin Electrum)",   auth: false,     rebind: "likely",     impact: "Bitcoin tx history, address balances, UTXO set, mempool data", category: "dev" },
+
+  // ── Gaming servers (millions of these running) ──
+  // Minecraft RCON: remote console. Full server command execution.
+  { port: 25575, name: "Minecraft RCON",              auth: "password", rebind: "partial",    impact: "Server console: op players, run commands, world edit, server stop", category: "dev" },
+  { port: 27015, name: "Source Engine RCON",           auth: "password", rebind: "partial",    impact: "Valve game server console (CS2, TF2), exec cfg, ban players", category: "dev" },
+  // Steam LAN: transfers game files between PCs on same network
+  { port: 27036, name: "Steam Local Transfer",         auth: false,     rebind: "partial",    impact: "Steam library metadata, game transfer protocol, LAN discovery", category: "dev" },
+
+  // ── Industrial / SCADA / Building automation (IRL impact) ──
+  // IPMI: server hardware management. Remote KVM, power control, BIOS.
+  { port: 623,   name: "IPMI/BMC",                    auth: "default", rebind: "no",         impact: "Server hardware: remote console, power cycle, BIOS, virtual media", category: "infra" },
+  // Siemens S7: PLC protocol. Controls physical machinery.
+  { port: 102,   name: "Siemens S7 PLC (ISO-TSAP)",   auth: false,     rebind: "no",         impact: "Industrial PLC read/write: motor control, valve state, safety systems", category: "automation" },
+  // BACnet: building automation. HVAC, fire alarms, access control.
+  { port: 47808, name: "BACnet (Building Automation)", auth: false,     rebind: "partial",    impact: "HVAC override, fire alarm suppress, door unlock, lighting control", category: "automation" },
+  // Niagara Fox: Tridium building management. Runs millions of buildings.
+  { port: 1911,  name: "Niagara Fox (Tridium)",       auth: "default", rebind: "partial",    impact: "Building management: sensor override, actuator control, history data", category: "automation" },
+  // EtherNet/IP CIP: Allen-Bradley, Rockwell PLCs
+  { port: 44818, name: "EtherNet/IP (CIP)",           auth: false,     rebind: "partial",    impact: "PLC/drive control, safety system read, I/O manipulation", category: "automation" },
+
+  // ── Databases (missed ones) ──
+  { port: 1521,  name: "Oracle Database (TNS)",        auth: "password", rebind: "no",        impact: "Oracle DB access, TNS listener info, SID enumeration", category: "data" },
+  { port: 2480,  name: "OrientDB Studio",             auth: "default", rebind: "likely",     impact: "Graph DB admin, SQL/Gremlin exec, schema manipulation", category: "data" },
+  { port: 9009,  name: "QuestDB Line Protocol",        auth: false,     rebind: "likely",     impact: "Time-series ingestion, write arbitrary data, metrics exfil", category: "data" },
+
+  // ── Network monitoring / DNS ──
+  // Pi-hole: runs on millions of home networks
+  { port: 4711,  name: "Pi-hole FTL API",              auth: false,     rebind: "likely",     impact: "DNS query logs: every domain visited, blocked list, client IPs", category: "infra" },
+
+  // ── X Window System ──
+  // X11 on non-default display. Screen capture, keyboard injection.
+  { port: 6002,  name: "X11 Display :2",               auth: false,     rebind: "no",         impact: "Screen capture, keystroke injection, window manipulation, clipboard", category: "dev" },
+
+  // ── Electron app debugging ──
+  // Many Electron apps can be launched with --remote-debugging-port
+  // Slack, Discord, VS Code, Teams, Signal, 1Password...
+  { port: 13337, name: "Electron Debug (common)",      auth: false,     rebind: "likely",     impact: "Electron app takeover: eval JS, read IPC, access app data", category: "dev" },
+
+  // ── Windows Remote Management ──
+  { port: 5985,  name: "WinRM HTTP",                  auth: "password", rebind: "no",        impact: "Windows remote shell, PowerShell exec, WMI queries", category: "infra" },
+  { port: 5986,  name: "WinRM HTTPS",                 auth: "password", rebind: "no",        impact: "Encrypted Windows remote management, same WinRM capabilities", category: "infra" },
 ];
 
 // Deduplicate by port (some share 3000)
