@@ -303,6 +303,102 @@ const TARGETS = [
   { port: 16010, name: "HBase Master Web UI",          auth: false,     rebind: "likely",     impact: "Table listing, region info, cluster status",      category: "data" },
   { port: 8042,  name: "YARN NodeManager",             auth: false,     rebind: "likely",     impact: "Container logs, application info, node resources", category: "data" },
   { port: 19888, name: "MapReduce History",            auth: false,     rebind: "likely",     impact: "Job counters, task attempts, config dump",        category: "data" },
+
+  // ═══════════════════════════════════════════════════════════════
+  // ██  THE ONES NOBODY THINKS ABOUT  ████████████████████████████
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── IDE backends (THE big discovery) ──
+  // JetBrains runs a built-in HTTP server on EVERY IDE install.
+  // IntelliJ, WebStorm, PyCharm, GoLand, Rider, CLion, PhpStorm...
+  // It serves ANY file in your open projects via HTTP. No auth.
+  // Millions of developers have this running right now.
+  { port: 63342, name: "JetBrains Built-in Server",    auth: false,     rebind: "confirmed",  impact: "ANY open project file served via HTTP, full source code exfil", category: "dev" },
+  { port: 63343, name: "JetBrains Server (fallback)",  auth: false,     rebind: "confirmed",  impact: "Alt port, same project file access via REST API", category: "dev" },
+
+  // ── Desktop app hidden servers nobody knows about ──
+  // Obsidian with Local REST API plugin: your entire vault via HTTP
+  // Personal notes, journals, passwords stored in markdown, TODO lists
+  { port: 27123, name: "Obsidian Local REST API",      auth: "api_key", rebind: "likely",     impact: "Full vault read/write: notes, journals, passwords, private thoughts", category: "dev" },
+  // Figma installs a persistent local daemon on every designer's machine
+  { port: 18412, name: "Figma Font Helper",            auth: false,     rebind: "likely",     impact: "Local font enumeration, system font fingerprinting", category: "dev" },
+  // Barrier/Synergy: KVM switch software. Inject keystrokes remotely.
+  { port: 24800, name: "Barrier / Synergy KVM",        auth: false,     rebind: "confirmed",  impact: "Keyboard injection, mouse control, clipboard theft = keylogger", category: "dev" },
+  // KDE Connect: phone-to-PC bridge. Access SMS, clipboard, files.
+  { port: 1716,  name: "KDE Connect",                  auth: "cert",    rebind: "partial",    impact: "SMS read, clipboard sync, file transfer, phone locate/ring", category: "automation" },
+  // Music Player Daemon: every Linux audio nerd has this
+  { port: 6600,  name: "MPD (Music Player Daemon)",    auth: false,     rebind: "likely",     impact: "Playlist control, media library listing, filesystem path leak", category: "dev" },
+
+  // ── Apple ecosystem (macOS-specific) ──
+  { port: 7000,  name: "AirPlay Receiver",             auth: false,     rebind: "partial",    impact: "Screen mirroring injection, media playback hijack", category: "automation" },
+  { port: 548,   name: "AFP (Apple Filing Protocol)",  auth: "password", rebind: "no",        impact: "macOS file shares, Time Machine backup access",  category: "infra" },
+  { port: 3283,  name: "Apple Remote Desktop",         auth: "password", rebind: "partial",   impact: "Screen observation, remote control, file copy, shell exec", category: "dev" },
+
+  // ── Smart home (the scary ones) ──
+  // Sonos speakers: no auth, confirmed rebindable, on every audiophile's network
+  { port: 1400,  name: "Sonos HTTP API",               auth: false,     rebind: "confirmed",  impact: "Speaker control, household topology, play arbitrary audio", category: "automation" },
+  // Chromecast: every household with a Google TV has this
+  { port: 8008,  name: "Google Chromecast",            auth: false,     rebind: "partial",    impact: "Cast control, device info, app launch, reboot device", category: "automation" },
+  // ESPHome: IoT firmware builder. Flash new firmware = own the device
+  { port: 6052,  name: "ESPHome Dashboard",            auth: false,     rebind: "likely",     impact: "OTA firmware flash, WiFi credentials, device takeover", category: "automation" },
+  // Homebridge: HomeKit bridge running on Raspberry Pis everywhere
+  { port: 8581,  name: "Homebridge",                   auth: "password", rebind: "likely",    impact: "HomeKit device control, plugin config, smart home admin", category: "automation" },
+
+  // ── Package registries (supply chain) ──
+  // Private npm registry: contains all your company's private packages
+  { port: 4873,  name: "Verdaccio (npm registry)",     auth: false,     rebind: "likely",     impact: "Private npm packages exfil, publish malicious updates", category: "dev" },
+
+  // ── File sharing protocols ──
+  { port: 445,   name: "SMB (Samba)",                  auth: "password", rebind: "no",        impact: "File share enum, printer shares, lateral movement", category: "infra" },
+  { port: 2049,  name: "NFS",                          auth: false,     rebind: "partial",    impact: "Network filesystem mount, full file access if misconfigured", category: "infra" },
+  { port: 22000, name: "Syncthing File Transfer",      auth: false,     rebind: "partial",    impact: "File sync data channel, shared folder content access", category: "infra" },
+
+  // ── Torrent clients (embarrassing data) ──
+  // Transmission is on every Linux desktop. No auth by default.
+  { port: 9091,  name: "Transmission Web UI",          auth: false,     rebind: "confirmed",  impact: "Torrent list exfil, download paths, add malicious torrents", category: "dev" },
+  { port: 8112,  name: "Deluge Web UI",                auth: "default", rebind: "likely",     impact: "Torrent management, download dir, ratio data",   category: "dev" },
+  { port: 51413, name: "Transmission BitTorrent",      auth: false,     rebind: "partial",    impact: "BitTorrent protocol, peer info, transfer data",  category: "dev" },
+
+  // ── Blockchain / Web3 extended (wallet drainers) ──
+  // Polkadot/Substrate nodes: full chain control
+  { port: 9944,  name: "Polkadot/Substrate WS RPC",   auth: false,     rebind: "likely",     impact: "Chain state query, account balance, tx submission", category: "dev" },
+  { port: 9933,  name: "Substrate HTTP RPC",           auth: false,     rebind: "likely",     impact: "Blockchain node control, key management, author rotation", category: "dev" },
+  // Cosmos ecosystem: Tendermint nodes
+  { port: 26657, name: "Tendermint RPC",               auth: false,     rebind: "likely",     impact: "Cosmos chain state, tx broadcast, validator info", category: "dev" },
+  { port: 1317,  name: "Cosmos REST API",              auth: false,     rebind: "likely",     impact: "Chain queries, account data, governance proposals", category: "dev" },
+  // Truffle Dashboard: requests transaction signatures from YOUR wallet
+  { port: 9545,  name: "Truffle Dashboard",            auth: false,     rebind: "likely",     impact: "Transaction signing requests, contract deployment approval", category: "dev" },
+
+  // ── Workflow / Orchestration ──
+  { port: 8233,  name: "Temporal Web UI",              auth: false,     rebind: "likely",     impact: "Workflow execution data, namespace admin, signal inject", category: "infra" },
+  { port: 2746,  name: "Argo Workflows UI",            auth: false,     rebind: "likely",     impact: "K8s workflow execution, artifact download, log access", category: "infra" },
+
+  // ── Hypervisor / VM management ──
+  // Proxmox: hypervisor running VMs. Admin = god mode on the host.
+  { port: 8006,  name: "Proxmox VE",                   auth: "password", rebind: "likely",    impact: "VM/container management, host shell, storage, backups", category: "infra" },
+
+  // ── DNS servers (control DNS = control everything) ──
+  { port: 53,    name: "DNS Resolver (TCP)",           auth: false,     rebind: "no",         impact: "DNS cache queries, zone transfer, internal hostname enum", category: "infra" },
+  { port: 5380,  name: "Technitium DNS Admin",        auth: "default", rebind: "likely",     impact: "DNS zone manipulation, query logs, cache poisoning", category: "infra" },
+  { port: 9153,  name: "CoreDNS Metrics",              auth: false,     rebind: "likely",     impact: "DNS query stats, zone info, internal resolution patterns", category: "infra" },
+
+  // ── Directory services ──
+  { port: 389,   name: "LDAP",                        auth: "bind",    rebind: "no",         impact: "User enumeration, group membership, org structure", category: "infra" },
+  { port: 636,   name: "LDAPS",                       auth: "bind",    rebind: "no",         impact: "Encrypted directory queries, same LDAP impact",  category: "infra" },
+
+  // ── Voice / Comms ──
+  { port: 64738, name: "Mumble Voice Server",          auth: false,     rebind: "partial",    impact: "Voice chat eavesdrop, user list, channel mapping", category: "dev" },
+  { port: 3478,  name: "STUN/TURN (WebRTC)",          auth: false,     rebind: "partial",    impact: "NAT traversal abuse, internal IP disclosure, relay hijack", category: "infra" },
+
+  // ── Data visualization ──
+  { port: 5006,  name: "Bokeh / Panel Server",        auth: false,     rebind: "likely",     impact: "Interactive data viz, underlying dataset exfiltration", category: "ai" },
+
+  // ── AI inference servers ──
+  { port: 9999,  name: "vLLM API Server",              auth: false,     rebind: "likely",     impact: "LLM inference, model list, completion abuse, prompt injection", category: "ai" },
+
+  // ── Container runtime internals ──
+  { port: 10010, name: "containerd CRI gRPC",          auth: false,     rebind: "likely",     impact: "Container runtime control, image pull, exec in containers", category: "infra" },
+  { port: 9181,  name: "ZooKeeper AdminServer",        auth: false,     rebind: "likely",     impact: "Four-letter commands, stat/dump/conf, snapshot trigger", category: "data" },
 ];
 
 // Deduplicate by port (some share 3000)
