@@ -731,16 +731,12 @@ async function singleProbe(port, timeout) {
 }
 
 async function calibrate() {
-  // Probe random high ports that are almost certainly closed
+  // Probe random high ports that are almost certainly closed (parallel)
   const closedPorts = [38291, 41753, 49582, 52847, 57391];
-  const times = [];
-  for (const port of closedPorts) {
-    const r = await singleProbe(port, 2000);
-    if (!r.aborted) times.push(r.elapsed);
-  }
+  const probes = await Promise.all(closedPorts.map(p => singleProbe(p, 1500)));
+  const times = probes.filter(r => !r.aborted).map(r => r.elapsed);
   if (times.length === 0) return 50;
   times.sort((a, b) => a - b);
-  // Use median for robustness
   return times[Math.floor(times.length / 2)];
 }
 
@@ -780,15 +776,16 @@ async function startScan() {
   if (!scanning) return;
   document.getElementById('scanStatus').textContent = 'Scanning... (baseline: ' + baseline.toFixed(0) + 'ms, threshold: ' + threshold.toFixed(0) + 'ms)';
 
-  // Step 2: Scan in batches
-  const batchSize = 4;
+  // Step 2: Scan in batches (12 parallel, 1.5s timeout = ~30s total)
+  const batchSize = 12;
+  const probeTimeout = 1500;
   for (let i = 0; i < TARGETS.length; i += batchSize) {
     if (!scanning) break;
 
     const batch = TARGETS.slice(i, i + batchSize);
     batch.forEach(t => updateCard(t.port, 'scanning'));
 
-    const probes = batch.map(t => probePort(t.port));
+    const probes = batch.map(t => probePort(t.port, probeTimeout));
     const batchResults = await Promise.all(probes);
 
     for (const r of batchResults) {
@@ -796,8 +793,10 @@ async function startScan() {
       updateCard(r.port, r.open ? 'open' : 'closed');
     }
 
-    const pct = Math.min(100, ((i + batchSize) / TARGETS.length) * 100);
+    const scanned = Math.min(i + batchSize, TARGETS.length);
+    const pct = (scanned / TARGETS.length) * 100;
     document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('scanStatus').textContent = 'Scanning ' + scanned + ' / ' + TARGETS.length + ' ports (baseline: ' + baseline.toFixed(0) + 'ms)';
   }
 
   scanning = false;
