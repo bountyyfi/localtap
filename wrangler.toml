@@ -1,0 +1,11 @@
+name = "localtap"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Create KV namespace first:
+# wrangler kv namespace create LOCALTAP
+# Then paste the ID below
+
+[[kv_namespaces]]
+binding = "LOCALTAP"
+id = "c3783f7b46354d21a2a43766e42f08c2"
