@@ -531,30 +531,55 @@ function updateStats() {
 }
 
 // ─── PORT SCANNING ─────────────────────────────────────────────
-// Timing-based: fetch to localhost with short timeout.
-// Open port: connection succeeds or fails fast (CORS error = open)
-// Closed port: connection hangs until timeout (TCP RST varies by OS)
+// Timing-based detection with calibration:
+// 1. Calibrate by probing random high ports (certainly closed) to get baseline
+// 2. Open ports take measurably longer (TCP handshake + HTTP response)
+// 3. Closed ports error at ~baseline speed (instant RST, no handshake)
 
-async function probePort(port, timeout = 1500) {
+let baseline = 0;
+
+async function singleProbe(port, timeout) {
   const start = performance.now();
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeout);
-    await fetch('http://127.0.0.1:' + port + '/', {
-      mode: 'no-cors',
-      signal: controller.signal,
-    });
-    clearTimeout(timer);
-    return { port, open: true, time: performance.now() - start };
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), timeout);
+    await fetch('http://127.0.0.1:' + port + '/', { mode: 'no-cors', signal: c.signal });
+    clearTimeout(t);
+    return { port, elapsed: performance.now() - start, succeeded: true };
   } catch (e) {
-    const elapsed = performance.now() - start;
-    // If it errored fast (< timeout * 0.8), something responded (CORS block = service exists)
-    // If it timed out or took long, port is likely closed
-    if (elapsed < timeout * 0.8 && e.name !== 'AbortError') {
-      return { port, open: true, time: elapsed };
-    }
-    return { port, open: false, time: elapsed };
+    return { port, elapsed: performance.now() - start, succeeded: false, aborted: e.name === 'AbortError' };
   }
+}
+
+async function calibrate() {
+  // Probe random high ports that are almost certainly closed
+  const closedPorts = [38291, 41753, 49582, 52847, 57391];
+  const times = [];
+  for (const port of closedPorts) {
+    const r = await singleProbe(port, 2000);
+    if (!r.aborted) times.push(r.elapsed);
+  }
+  if (times.length === 0) return 50;
+  times.sort((a, b) => a - b);
+  // Use median for robustness
+  return times[Math.floor(times.length / 2)];
+}
+
+async function probePort(port, timeout) {
+  timeout = timeout || 3000;
+  const r = await singleProbe(port, timeout);
+
+  // fetch succeeded with opaque response = definitely open
+  if (r.succeeded) return { port, open: true, time: r.elapsed };
+
+  // Timed out = likely filtered or no service
+  if (r.aborted) return { port, open: false, time: r.elapsed };
+
+  // Error: compare timing to baseline
+  // Connection refused: ~baseline (no TCP handshake)
+  // CORS block from service: baseline + TCP handshake + HTTP = significantly slower
+  const threshold = Math.max(baseline * 3, baseline + 50);
+  return { port, open: r.elapsed > threshold, time: r.elapsed };
 }
 
 async function startScan() {
@@ -567,18 +592,21 @@ async function startScan() {
   document.getElementById('stopScan').style.display = '';
   document.getElementById('progressWrap').style.display = '';
   document.getElementById('reportBtn').style.display = 'none';
-  document.getElementById('scanStatus').textContent = 'Scanning...';
+  document.getElementById('scanStatus').textContent = 'Calibrating baseline...';
 
-  abortController = new AbortController();
+  // Step 1: Calibrate
+  baseline = await calibrate();
+  const threshold = Math.max(baseline * 3, baseline + 50);
 
-  // Scan in batches of 5 for speed
-  const batchSize = 5;
+  if (!scanning) return;
+  document.getElementById('scanStatus').textContent = 'Scanning... (baseline: ' + baseline.toFixed(0) + 'ms, threshold: ' + threshold.toFixed(0) + 'ms)';
+
+  // Step 2: Scan in batches
+  const batchSize = 4;
   for (let i = 0; i < TARGETS.length; i += batchSize) {
     if (!scanning) break;
 
     const batch = TARGETS.slice(i, i + batchSize);
-
-    // Mark as scanning
     batch.forEach(t => updateCard(t.port, 'scanning'));
 
     const probes = batch.map(t => probePort(t.port));
@@ -589,7 +617,6 @@ async function startScan() {
       updateCard(r.port, r.open ? 'open' : 'closed');
     }
 
-    // Update progress
     const pct = Math.min(100, ((i + batchSize) / TARGETS.length) * 100);
     document.getElementById('progressBar').style.width = pct + '%';
   }
@@ -597,10 +624,17 @@ async function startScan() {
   scanning = false;
   document.getElementById('startScan').disabled = false;
   document.getElementById('stopScan').style.display = 'none';
-  document.getElementById('scanStatus').textContent = 'Scan complete.';
 
   const openCount = Object.values(results).filter(v => v === 'open').length;
-  if (openCount > 0) {
+  const totalCount = Object.keys(results).length;
+  document.getElementById('scanStatus').textContent = 'Done. ' + openCount + '/' + totalCount + ' open (baseline: ' + baseline.toFixed(0) + 'ms)';
+
+  // Warn if all ports show open (browser likely blocking all localhost access)
+  if (openCount === totalCount && totalCount > 10) {
+    document.getElementById('scanStatus').textContent = 'Warning: All ports detected as open. Your browser may be blocking localhost access uniformly (e.g. Safari/iOS). Try Chrome on desktop for accurate results.';
+  }
+
+  if (openCount > 0 && openCount < totalCount) {
     document.getElementById('reportBtn').style.display = '';
   }
 }
