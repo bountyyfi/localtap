@@ -65,6 +65,77 @@ const TARGETS = [
   { port: 4040,  name: "Spark UI",                   auth: false,     rebind: "likely",     impact: "Job data, environment variables",             category: "data" },
   { port: 15672, name: "RabbitMQ Management",        auth: "default", rebind: "likely",     impact: "Queue access, message sniffing",              category: "data" },
   { port: 8161,  name: "ActiveMQ Web Console",       auth: "default", rebind: "likely",     impact: "Queue management, message access",            category: "data" },
+
+  // ── Additional AI/ML services ──
+  { port: 8501,  name: "Streamlit",                  auth: false,     rebind: "likely",     impact: "Data app access, code exec via widgets",      category: "ai" },
+  { port: 6333,  name: "Qdrant Vector DB",            auth: false,     rebind: "likely",     impact: "Vector dump, embedding exfil, collection delete", category: "ai" },
+  { port: 19530, name: "Milvus Vector DB",             auth: false,     rebind: "likely",     impact: "Vector data exfil, collection manipulation",  category: "ai" },
+  { port: 5000,  name: "MLflow Tracking",              auth: false,     rebind: "likely",     impact: "Model registry, experiment data, artifact access", category: "ai" },
+  { port: 6006,  name: "TensorBoard",                  auth: false,     rebind: "likely",     impact: "Training data leak, model architecture exfil", category: "ai" },
+  { port: 11435, name: "Ollama (alt port)",             auth: false,     rebind: "confirmed",  impact: "Model exec, file read",                       category: "ai" },
+  { port: 4891,  name: "LocalAI",                      auth: false,     rebind: "likely",     impact: "Model exec, OpenAI-compatible API abuse",      category: "ai" },
+  { port: 8080,  name: "AnythingLLM",                  auth: false,     rebind: "likely",     impact: "LLM access, document store, workspace data",   category: "ai" },
+  { port: 3080,  name: "LibreChat",                    auth: "session", rebind: "likely",     impact: "LLM conversations, API key theft",             category: "ai" },
+  { port: 7862,  name: "Stable Diffusion WebUI (alt)", auth: false,     rebind: "likely",     impact: "Image generation, model access",               category: "ai" },
+
+  // ── Additional web dev services ──
+  { port: 4321,  name: "Astro Dev Server",             auth: false,     rebind: "likely",     impact: "Source code exfil, SSR abuse",                 category: "webdev" },
+  { port: 1313,  name: "Hugo Dev Server",              auth: false,     rebind: "likely",     impact: "Content exfil, draft access",                  category: "webdev" },
+  { port: 4000,  name: "Remix / Phoenix",              auth: false,     rebind: "likely",     impact: "Source code, SSR abuse, live dashboard",       category: "webdev" },
+  { port: 3333,  name: "AdonisJS / Nuxt",              auth: false,     rebind: "likely",     impact: "Source code, API access",                      category: "webdev" },
+  { port: 24678, name: "Vite HMR WebSocket",           auth: false,     rebind: "likely",     impact: "Hot module injection, source code modification", category: "webdev" },
+  { port: 5500,  name: "Live Server (VS Code)",        auth: false,     rebind: "likely",     impact: "Static file serving, content injection",       category: "webdev" },
+  { port: 35729, name: "LiveReload",                   auth: false,     rebind: "likely",     impact: "Page injection via reload protocol",           category: "webdev" },
+  { port: 9292,  name: "Rack / Sinatra (Ruby)",        auth: false,     rebind: "likely",     impact: "Source code, session data",                    category: "webdev" },
+  { port: 6006,  name: "Storybook",                    auth: false,     rebind: "likely",     impact: "Component source, internal UI exposure",       category: "webdev" },
+  { port: 5555,  name: "Prisma Studio",                auth: false,     rebind: "likely",     impact: "Full database GUI, CRUD on all models",        category: "webdev" },
+  { port: 4002,  name: "Apollo GraphQL Sandbox",       auth: false,     rebind: "likely",     impact: "Schema introspection, query execution",        category: "webdev" },
+
+  // ── Additional infrastructure ──
+  { port: 8500,  name: "HashiCorp Consul",             auth: false,     rebind: "likely",     impact: "Service discovery, KV store access, ACL bypass", category: "infra" },
+  { port: 8200,  name: "HashiCorp Vault",              auth: "token",   rebind: "partial",    impact: "Secret exfil, token theft, seal/unseal",       category: "infra" },
+  { port: 2019,  name: "Caddy Admin API",              auth: false,     rebind: "likely",     impact: "Config manipulation, reverse proxy hijack",    category: "infra" },
+  { port: 9901,  name: "Envoy Admin",                  auth: false,     rebind: "likely",     impact: "Config dump, cluster topology, stats",         category: "infra" },
+  { port: 4646,  name: "HashiCorp Nomad",              auth: false,     rebind: "likely",     impact: "Job scheduling, exec, secret access",          category: "infra" },
+  { port: 9001,  name: "MinIO Console",                auth: "default", rebind: "likely",     impact: "S3 bucket access, object read/write/delete",   category: "infra" },
+  { port: 8384,  name: "Syncthing",                    auth: false,     rebind: "likely",     impact: "File sync manipulation, shared folder access", category: "infra" },
+  { port: 32400, name: "Plex Media Server",            auth: "token",   rebind: "partial",    impact: "Media library, user accounts, network info",   category: "infra" },
+  { port: 8096,  name: "Jellyfin",                     auth: "session", rebind: "likely",     impact: "Media library, user data, transcoding abuse",  category: "infra" },
+
+  // ── Additional databases ──
+  { port: 5984,  name: "CouchDB",                      auth: false,     rebind: "confirmed",  impact: "Database dump, admin party (no auth default)", category: "data" },
+  { port: 8086,  name: "InfluxDB",                     auth: false,     rebind: "likely",     impact: "Time-series data exfil, metric manipulation",  category: "data" },
+  { port: 7474,  name: "Neo4j Browser",                auth: "default", rebind: "likely",     impact: "Graph traversal, full data dump, Cypher exec", category: "data" },
+  { port: 2379,  name: "etcd",                         auth: false,     rebind: "likely",     impact: "K8s secrets, cluster state, config dump",      category: "data" },
+  { port: 8529,  name: "ArangoDB",                     auth: false,     rebind: "likely",     impact: "Multi-model DB access, Foxx service exec",    category: "data" },
+  { port: 8123,  name: "ClickHouse HTTP",              auth: false,     rebind: "likely",     impact: "SQL query exec, data exfil, table drop",      category: "data" },
+  { port: 26257, name: "CockroachDB SQL",              auth: false,     rebind: "likely",     impact: "Distributed SQL access, data dump",            category: "data" },
+  { port: 28015, name: "RethinkDB",                    auth: false,     rebind: "likely",     impact: "ReQL exec, realtime feed hijack",              category: "data" },
+  { port: 9042,  name: "Cassandra CQL",                auth: false,     rebind: "partial",    impact: "Keyspace dump, CQL injection",                 category: "data" },
+  { port: 7687,  name: "Neo4j Bolt",                   auth: "default", rebind: "partial",    impact: "Direct graph DB access",                       category: "data" },
+
+  // ── Observability ──
+  { port: 9411,  name: "Zipkin",                       auth: false,     rebind: "likely",     impact: "Distributed trace exfil, service topology map", category: "infra" },
+  { port: 16686, name: "Jaeger UI",                    auth: false,     rebind: "likely",     impact: "Trace data exfil, internal service mapping",   category: "infra" },
+  { port: 4317,  name: "OpenTelemetry Collector",      auth: false,     rebind: "likely",     impact: "Telemetry injection, trace/metric poisoning",  category: "infra" },
+  { port: 3301,  name: "SigNoz",                       auth: false,     rebind: "likely",     impact: "APM data exfil, infrastructure topology",      category: "infra" },
+
+  // ── Developer tools ──
+  { port: 5050,  name: "pgAdmin",                      auth: "default", rebind: "likely",     impact: "Database management, saved server credentials", category: "dev" },
+  { port: 1337,  name: "Strapi Admin",                 auth: false,     rebind: "likely",     impact: "CMS admin, content manipulation, user data",   category: "dev" },
+  { port: 8055,  name: "Directus",                     auth: "token",   rebind: "likely",     impact: "Headless CMS access, media library, user data", category: "dev" },
+  { port: 54321, name: "Supabase Studio",              auth: false,     rebind: "likely",     impact: "DB GUI, auth users, storage buckets, edge functions", category: "dev" },
+  { port: 8090,  name: "PocketBase",                   auth: false,     rebind: "likely",     impact: "Admin API, collection CRUD, file storage",     category: "dev" },
+  { port: 9229,  name: "Node.js Inspector",            auth: false,     rebind: "confirmed",  impact: "Debugger attach, arbitrary code execution",    category: "dev" },
+  { port: 5037,  name: "ADB (Android Debug Bridge)",   auth: false,     rebind: "likely",     impact: "Android device control, app install, shell",   category: "dev" },
+  { port: 631,   name: "CUPS (Print Server)",          auth: false,     rebind: "likely",     impact: "Printer config, print job access, CVE-2024-47176", category: "dev" },
+
+  // ── Automation ──
+  { port: 8123,  name: "Home Assistant",               auth: "token",   rebind: "likely",     impact: "Smart home control, camera feeds, location data", category: "automation" },
+  { port: 2283,  name: "Immich",                       auth: "api_key", rebind: "likely",     impact: "Photo library exfil, ML face data, geodata",   category: "automation" },
+  { port: 9443,  name: "Portainer (HTTPS)",            auth: "session", rebind: "partial",    impact: "Container management, host access",            category: "automation" },
+  { port: 8085,  name: "Windmill",                     auth: "token",   rebind: "likely",     impact: "Script execution, workflow secrets, API keys",  category: "automation" },
+  { port: 3030,  name: "Directus / ToolJet",           auth: "session", rebind: "likely",     impact: "Low-code platform, data source credentials",   category: "automation" },
 ];
 
 // Deduplicate by port (some share 3000)
