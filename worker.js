@@ -220,6 +220,89 @@ const TARGETS = [
   { port: 33060, name: "MySQL X Protocol",             auth: "password", rebind: "no",        impact: "Document store access, async queries",           category: "data" },
   { port: 6380,  name: "Redis (TLS)",                  auth: false,     rebind: "partial",    impact: "Encrypted cache access",                         category: "data" },
   { port: 8529,  name: "ArangoDB Web UI",              auth: false,     rebind: "likely",     impact: "AQL queries, graph traversal, user management",  category: "data" },
+
+  // ── Message queues ──
+  { port: 5672,  name: "RabbitMQ AMQP",               auth: "default", rebind: "partial",    impact: "Queue consume/publish, vhost access, user creds", category: "data" },
+  { port: 4222,  name: "NATS",                         auth: false,     rebind: "likely",     impact: "Pub/sub hijack, request/reply interception",     category: "data" },
+  { port: 8222,  name: "NATS Monitoring",              auth: false,     rebind: "likely",     impact: "Connection info, subscription list, route map",  category: "data" },
+  { port: 4151,  name: "NSQ nsqd HTTP",                auth: false,     rebind: "likely",     impact: "Topic/channel manipulation, message publish",    category: "data" },
+  { port: 4171,  name: "NSQ nsqadmin",                 auth: false,     rebind: "likely",     impact: "Cluster admin, topic delete, channel management", category: "data" },
+  { port: 61616, name: "ActiveMQ OpenWire",            auth: "default", rebind: "partial",    impact: "Message broker access, queue manipulation",      category: "data" },
+  { port: 11300, name: "Beanstalkd",                   auth: false,     rebind: "likely",     impact: "Job queue access, job steal/delete/inject",      category: "data" },
+
+  // ── Monitoring / Observability ──
+  { port: 9093,  name: "Alertmanager",                 auth: false,     rebind: "likely",     impact: "Alert silencing, notification routing, alert exfil", category: "infra" },
+  { port: 9115,  name: "Blackbox Exporter",            auth: false,     rebind: "likely",     impact: "SSRF via probe targets, internal endpoint map",  category: "infra" },
+  { port: 19999, name: "Netdata",                      auth: false,     rebind: "confirmed",  impact: "Real-time system metrics, process list, disk info", category: "infra" },
+  { port: 8686,  name: "Vector (Datadog)",             auth: false,     rebind: "likely",     impact: "Log pipeline config, health/metrics exfil",      category: "infra" },
+
+  // ── Kubernetes internals ──
+  { port: 10255, name: "Kubelet Read-only",            auth: false,     rebind: "likely",     impact: "Pod list, spec dump, running containers",        category: "infra" },
+  { port: 10248, name: "Kubelet Healthz",              auth: false,     rebind: "likely",     impact: "Node health, component status",                  category: "infra" },
+  { port: 2380,  name: "etcd Peer",                    auth: false,     rebind: "likely",     impact: "Cluster membership, leader election disruption",  category: "infra" },
+
+  // ── Proxy / Tunnel ──
+  { port: 3128,  name: "Squid Proxy",                  auth: false,     rebind: "likely",     impact: "Open proxy, SSRF, internal network pivot",       category: "infra" },
+  { port: 9050,  name: "Tor SOCKS",                    auth: false,     rebind: "partial",    impact: "Anonymous traffic relay, proxy abuse",            category: "infra" },
+  { port: 2222,  name: "SSH Alt / Gitea SSH",          auth: "password", rebind: "no",        impact: "Shell access, Git repo access",                  category: "dev" },
+  { port: 9418,  name: "Git Daemon",                   auth: false,     rebind: "likely",     impact: "Anonymous Git clone, source code exfil",         category: "dev" },
+
+  // ── AI/ML extended ──
+  { port: 8265,  name: "Ray Dashboard",                auth: false,     rebind: "likely",     impact: "Distributed compute cluster, job submission, actor list", category: "ai" },
+  { port: 6334,  name: "Qdrant gRPC",                  auth: false,     rebind: "likely",     impact: "Vector DB gRPC, high-speed embedding exfil",     category: "ai" },
+  { port: 8084,  name: "Weaviate",                     auth: false,     rebind: "likely",     impact: "Vector search, schema manipulation, object CRUD", category: "ai" },
+  { port: 5002,  name: "Flask / TTS Server",           auth: false,     rebind: "likely",     impact: "API access, model inference, file serving",      category: "ai" },
+  { port: 7861,  name: "Gradio (alt port)",            auth: false,     rebind: "likely",     impact: "ML app access, file upload, model inference",    category: "ai" },
+
+  // ── Blockchain extended ──
+  { port: 8332,  name: "Bitcoin Core RPC",             auth: "password", rebind: "partial",   impact: "Wallet access, transaction signing, fund transfer", category: "dev" },
+  { port: 18443, name: "Bitcoin Regtest RPC",          auth: "password", rebind: "partial",   impact: "Test wallet control, block generation",           category: "dev" },
+  { port: 5052,  name: "Ethereum Beacon API",          auth: false,     rebind: "likely",     impact: "Validator info, beacon state, attestation data",  category: "dev" },
+  { port: 8551,  name: "Geth Engine API",              auth: "token",   rebind: "partial",    impact: "Execution layer control, payload building",      category: "dev" },
+  { port: 30303, name: "Geth P2P",                     auth: false,     rebind: "partial",    impact: "Peer discovery, network topology mapping",       category: "dev" },
+
+  // ── CMS / Web apps ──
+  { port: 2368,  name: "Ghost CMS",                    auth: "session", rebind: "likely",     impact: "Blog admin, content manipulation, user data",    category: "webdev" },
+  { port: 8069,  name: "Odoo ERP",                     auth: "session", rebind: "likely",     impact: "Business data, invoices, customer records",      category: "webdev" },
+  { port: 3010,  name: "Gitea Web UI",                 auth: "session", rebind: "likely",     impact: "Git repos, CI secrets, user management",         category: "dev" },
+  { port: 8929,  name: "GitLab Dev Kit",               auth: "default", rebind: "likely",     impact: "Git repos, CI/CD pipelines, secrets, tokens",    category: "dev" },
+
+  // ── IoT / Protocol ──
+  { port: 1883,  name: "MQTT (Mosquitto)",             auth: false,     rebind: "confirmed",  impact: "IoT message intercept, topic subscribe, publish", category: "automation" },
+  { port: 8883,  name: "MQTT TLS",                     auth: "cert",    rebind: "partial",    impact: "Encrypted IoT messaging, device control",        category: "automation" },
+  { port: 4840,  name: "OPC UA Server",                auth: false,     rebind: "likely",     impact: "Industrial control read/write, PLC access",      category: "automation" },
+  { port: 502,   name: "Modbus TCP",                   auth: false,     rebind: "likely",     impact: "Industrial device control, register read/write", category: "automation" },
+
+  // ── Media / Streaming ──
+  { port: 8554,  name: "MediaMTX (RTSP)",              auth: false,     rebind: "likely",     impact: "Camera stream interception, stream injection",   category: "infra" },
+  { port: 1935,  name: "RTMP Server",                  auth: false,     rebind: "likely",     impact: "Live stream hijack, stream key exfil",           category: "infra" },
+  { port: 25565, name: "Minecraft Server",             auth: false,     rebind: "partial",    impact: "Server info, player data, RCON if enabled",      category: "dev" },
+
+  // ── Desktop apps ──
+  { port: 6463,  name: "Discord RPC",                  auth: false,     rebind: "likely",     impact: "Rich presence manipulation, user info leak",     category: "dev" },
+  { port: 17500, name: "Dropbox LAN Sync",             auth: false,     rebind: "likely",     impact: "File sync metadata, peer discovery",             category: "dev" },
+  { port: 57621, name: "Spotify Connect",              auth: false,     rebind: "partial",    impact: "Playback control, device discovery",             category: "dev" },
+  { port: 47990, name: "Sunshine (Game Stream)",       auth: "password", rebind: "likely",    impact: "Remote desktop stream, input injection",         category: "dev" },
+  { port: 5800,  name: "VNC HTTP Viewer",              auth: false,     rebind: "likely",     impact: "Web-based remote desktop, no auth by default",   category: "dev" },
+  { port: 6000,  name: "X11 Display Server",           auth: false,     rebind: "partial",    impact: "Screen capture, keyboard sniffing, window inject", category: "dev" },
+
+  // ── Security tools ──
+  { port: 8834,  name: "Nessus Scanner",               auth: "password", rebind: "likely",    impact: "Vuln scan results, scan configs, network topology", category: "infra" },
+  { port: 9390,  name: "OpenVAS / Greenbone",          auth: "password", rebind: "likely",    impact: "Vulnerability reports, scan targets, credentials", category: "infra" },
+
+  // ── Misc dev services ──
+  { port: 7199,  name: "Cassandra JMX",                auth: false,     rebind: "partial",    impact: "Cluster management, compaction, repair trigger", category: "data" },
+  { port: 9998,  name: "Azkaban Web Server",           auth: "default", rebind: "likely",     impact: "Workflow execution, Hadoop job scheduling",       category: "data" },
+  { port: 5601,  name: "OpenSearch Dashboards",        auth: false,     rebind: "likely",     impact: "Log data exfil, index pattern access",           category: "data" },
+  { port: 14268, name: "Jaeger Collector HTTP",        auth: false,     rebind: "likely",     impact: "Trace injection, span data manipulation",        category: "infra" },
+  { port: 4318,  name: "OpenTelemetry HTTP",           auth: false,     rebind: "likely",     impact: "Telemetry injection, trace/metric/log poisoning", category: "infra" },
+  { port: 10000, name: "Webmin Alt / JupyterHub",     auth: "password", rebind: "likely",    impact: "System admin or multi-user notebook server",      category: "infra" },
+  { port: 7070,  name: "Spark REST Submission",        auth: false,     rebind: "likely",     impact: "Job submission, driver creation, app kill",       category: "data" },
+  { port: 18080, name: "Spark History Server",         auth: false,     rebind: "likely",     impact: "Job history, environment vars, executor logs",    category: "data" },
+  { port: 10002, name: "Hive Server2 Web UI",          auth: false,     rebind: "likely",     impact: "Query history, session info, database metadata",  category: "data" },
+  { port: 16010, name: "HBase Master Web UI",          auth: false,     rebind: "likely",     impact: "Table listing, region info, cluster status",      category: "data" },
+  { port: 8042,  name: "YARN NodeManager",             auth: false,     rebind: "likely",     impact: "Container logs, application info, node resources", category: "data" },
+  { port: 19888, name: "MapReduce History",            auth: false,     rebind: "likely",     impact: "Job counters, task attempts, config dump",        category: "data" },
 ];
 
 // Deduplicate by port (some share 3000)
